@@ -236,7 +236,14 @@ Please see the `CONTRIBUTING.rst <CONTRIBUTING.rst>`__.
 References
 ==========
 
+.. _references:
 
+.. [Melton2012]
+ | Melton, F., Johnson, L., Lund, C., Pierce, L., Michaelis, A., Hiatt, S., Guzman, A., Adhikari, D., Purdy, A., Rosevelt, C. and Votava, P. (2012). Satellite irrigation management support with the terrestrial observation and prediction system: A framework for integration of satellite and surface observations to support improvements in agricultural water resource management. *IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing*, 5(6), pp.1709-1721.
+ | `https://doi.org/10.1109/JSTARS.2012.2214474 <https://doi.org/10.1109/JSTARS.2012.2214474>`__
+.. [Pereira2020]
+ | Pereira L., Paredes P., Melton F., Johnson L., Lopez-Urrea R., Cancela J., Allen R. (2020). Prediction of basal crop coefficients from fraction of ground cover and height. *Agricultural Water Management*, Special Issue on Updates to the FAO56 Crop Water Requirements Method.
+ | `https://doi.org/10.1016/j.agwat.2020.106197 <https://doi.org/10.1016/j.agwat.2020.106197>`__
 
 .. |build| image:: https://github.com/Open-ET/openet-sims/actions/workflows/tests.yml/badge.svg
    :alt: Build status
