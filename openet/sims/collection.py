@@ -505,19 +505,24 @@ class Collection():
 
         # To return ET, the ET fraction must be interpolated
         if ('et' in variables) and ('et_fraction' not in interp_vars):
-            interp_vars.append('et_fraction')
+            interp_vars = interp_vars + ['et_fraction']
 
         # With the current interpolate.daily() function,
         #   something has to be interpolated in order to return et_reference
         if ('et_reference' in variables) and ('et_fraction' not in interp_vars):
-            interp_vars.append('et_fraction')
+            interp_vars = interp_vars + ['et_fraction']
+
+        # To compute the daily count, the ETf must be interpolated
+        # We may want to add support for computing daily_count when interpolating NDVI
+        if ('daily_count' in variables) and ('et_fraction' not in interp_vars):
+            interp_vars = interp_vars + ['et_fraction']
 
         # The time band is always needed for interpolation
-        interp_vars.append('time')
+        interp_vars = interp_vars + ['time']
 
         # Count will be determined using the aggregate_coll image masks
         if 'count' in variables:
-            interp_vars.append('mask')
+            interp_vars = interp_vars + ['mask']
             # interp_vars.remove('count')
 
         # Build initial scene image collection
@@ -624,15 +629,14 @@ class Collection():
                 )
 
             if ('et_reference' in variables) or ('et_fraction' in variables):
-                et_reference_img = (
+                eto_img = (
                     daily_coll.filterDate(agg_start_date, agg_end_date)
                     .select(['et_reference']).sum()
                 )
                 if (self.model_args['et_reference_resample'] and
                         (self.model_args['et_reference_resample'] in ['bilinear', 'bicubic'])):
-                    et_reference_img = (
-                        et_reference_img
-                        .setDefaultProjection(daily_et_ref_coll.first().projection())
+                    eto_img = (
+                        eto_img.setDefaultProjection(daily_et_ref_coll.first().projection())
                         .resample(self.model_args['et_reference_resample'])
                     )
 
@@ -640,32 +644,31 @@ class Collection():
             if 'et' in variables:
                 image_list.append(et_img.float())
             if 'et_reference' in variables:
-                image_list.append(et_reference_img.float())
+                image_list.append(eto_img.float())
             if 'et_fraction' in variables:
                 # Compute average et fraction over the aggregation period
-                image_list.append(
-                    et_img.divide(et_reference_img).rename(['et_fraction']).float()
-                )
+                image_list.append(et_img.divide(eto_img).rename(['et_fraction']).float())
             if 'ndvi' in variables:
-                # Compute average ndvi over the aggregation period
+                # Compute average NDVI over the aggregation period
                 ndvi_img = (
-                    daily_coll
-                    .filterDate(agg_start_date, agg_end_date)
-                    .select(['ndvi'])
-                    .mean()
-                    .float()
+                    daily_coll.filterDate(agg_start_date, agg_end_date)
+                    .select(['ndvi']).mean().float()
                 )
                 image_list.append(ndvi_img)
-            if 'count' in variables:
-                count_img = (
-                    aggregate_coll
-                    .filterDate(agg_start_date, agg_end_date)
-                    .select(['mask'])
-                    .reduce(ee.Reducer.count())
-                    .rename('count')
+            if ('scene_count' in variables) or ('count' in variables):
+                scene_count_img = (
+                    aggregate_coll.filterDate(agg_start_date, agg_end_date)
+                    .select(['mask']).reduce(ee.Reducer.sum()).rename('count')
                     .uint8()
                 )
-                image_list.append(count_img)
+                image_list.append(scene_count_img)
+            if 'daily_count' in variables:
+                daily_count_img = (
+                    daily_coll.filterDate(agg_start_date, agg_end_date)
+                    .select(['et_fraction']).reduce(ee.Reducer.count()).rename('daily_count')
+                    .uint8()
+                )
+                image_list.append(daily_count_img)
 
             return (
                 ee.Image(image_list)

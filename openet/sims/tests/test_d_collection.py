@@ -195,18 +195,6 @@ def test_Collection_build_landsat_c2_sr():
     assert {y['id'] for x in output['features'] for y in x['bands']} == VARIABLES
 
 
-# CGM - Non Landsat SR collections not currently supported
-# def test_Collection_build_sentinel_toa():
-#     """Test if the Sentinel 2 TOA collections can be built"""
-#     coll_obj = default_coll_obj(
-#         collections=['COPERNICUS/S2'], start_date='2017-05-01',
-#         end_date='2017-05-15')
-#     output = utils.getinfo(coll_obj._build())
-#     expected = ['20170510T184921_20170510T185915_T10SEJ']
-#     assert parse_scene_id(output) == expected
-#     assert {y['id'] for x in output['features'] for y in x['bands']} == VARIABLES
-
-
 def test_Collection_build_exclusive_enddate():
     """Test if the end_date is exclusive"""
     output = utils.getinfo(default_coll_obj(end_date='2017-07-24')._build())
@@ -370,6 +358,11 @@ def test_Collection_interpolate_variables_custom_ndvi():
     assert {y['id'] for x in output['features'] for y in x['bands']} == {'ndvi'}
 
 
+def test_Collection_interpolate_variables_custom_daily_count():
+    output = utils.getinfo(default_coll_obj().interpolate(variables=['daily_count']))
+    assert {y['id'] for x in output['features'] for y in x['bands']} == {'daily_count'}
+
+
 def test_Collection_interpolate_t_interval_daily():
     """Test if the daily time interval parameter works
 
@@ -422,36 +415,33 @@ def test_Collection_interpolate_t_interval_custom():
 def test_Collection_interpolate_et_reference_source_not_set():
     """Test if Exception is raised if et_reference_source is not set"""
     with pytest.raises(ValueError):
-        utils.getinfo(default_coll_obj(
-            et_reference_source=None, model_args={}).interpolate())
+        utils.getinfo(default_coll_obj(et_reference_source=None, model_args={}).interpolate())
 
 
 def test_Collection_interpolate_et_reference_band_not_set():
     """Test if Exception is raised if et_reference_band is not set"""
     with pytest.raises(ValueError):
-        utils.getinfo(default_coll_obj(
-            et_reference_band=None, model_args={}).interpolate())
+        utils.getinfo(default_coll_obj(et_reference_band=None, model_args={}).interpolate())
 
 
 def test_Collection_interpolate_et_reference_factor_not_set():
     """Test if Exception is raised if et_reference_factor is not set"""
     with pytest.raises(ValueError):
-        utils.getinfo(default_coll_obj(
-            et_reference_factor=None, model_args={}).interpolate())
+        utils.getinfo(default_coll_obj(et_reference_factor=None, model_args={}).interpolate())
 
 
 def test_Collection_interpolate_et_reference_factor_exception():
     """Test if Exception is raised if et_reference_factor is not a number or negative"""
     with pytest.raises(ValueError):
-        utils.getinfo(default_coll_obj(
-            et_reference_factor=-1, model_args={}).interpolate())
+        utils.getinfo(default_coll_obj(et_reference_factor=-1, model_args={}).interpolate())
 
 
 def test_Collection_interpolate_et_reference_resample_exception():
     """Test if Exception is raised if et_reference_resample is not set"""
     with pytest.raises(ValueError):
         utils.getinfo(default_coll_obj(
-            et_reference_resample='deadbeef', model_args={}).interpolate())
+            et_reference_resample='deadbeef', model_args={}
+        ).interpolate())
 
 
 def test_Collection_interpolate_et_reference_params_kwargs():

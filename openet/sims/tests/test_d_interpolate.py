@@ -151,6 +151,25 @@ def test_from_scene_et_fraction_t_interval_custom_values(tol=0.0001):
     assert output['count']['2017-07-01'] == 3
 
 
+def test_from_scene_et_fraction_t_interval_custom_daily_count(tol=0.0001):
+    output_coll = interpolate.from_scene_et_fraction(
+        scene_coll(['et_fraction', 'ndvi']),
+        start_date='2017-07-01', end_date='2017-08-01',
+        variables=['et_fraction', 'daily_count'],
+        interp_args={'interp_method': 'linear', 'interp_days': 32},
+        model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
+                    'et_reference_band': 'eto',
+                    'et_reference_factor': 1.0,
+                    'et_reference_resample': 'nearest'},
+        t_interval='custom',
+    )
+
+    TEST_POINT = (-121.5265, 38.7399)
+    output = utils.point_coll_value(output_coll, TEST_POINT, scale=30)
+    assert abs(output['et_fraction']['2017-07-01'] - 0.4) <= tol
+    assert output['daily_count']['2017-07-01'] == 31
+
+
 def test_from_scene_et_fraction_t_interval_monthly_et_reference_factor(tol=0.0001):
     output_coll = interpolate.from_scene_et_fraction(
         scene_coll(['et_fraction', 'ndvi']),

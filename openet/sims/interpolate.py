@@ -264,6 +264,11 @@ def from_scene_et_fraction(
     if ('et_reference' in variables) and ('et_fraction' not in interp_vars):
         interp_vars = interp_vars + ['et_fraction']
 
+    # To compute the daily count, the ETf must be interpolated
+    # We may want to add support for computing daily_count when interpolating NDVI
+    if ('daily_count' in variables) and ('et_fraction' not in interp_vars):
+        interp_vars = interp_vars + ['et_fraction']
+
     # The NDVI band is always needed for the soil water balance
     if estimate_soil_evaporation and ('ndvi' not in interp_vars):
         interp_vars = interp_vars + ['ndvi']
@@ -317,7 +322,7 @@ def from_scene_et_fraction(
     )
 
     # For count, compute the composite/mosaic image for the mask band only
-    if 'count' in variables:
+    if ('scene_count' in variables) or ('count' in variables):
         aggregate_coll = openet.core.interpolate.aggregate_to_daily(
             image_coll=scene_coll.select(['mask']),
             start_date=start_date,
@@ -399,16 +404,13 @@ def from_scene_et_fraction(
             et_img = daily_coll.filterDate(agg_start_date, agg_end_date).select(['et']).sum()
 
         if ('et_reference' in variables) or ('et_fraction' in variables):
-            et_reference_img = (
-                daily_et_ref_coll
-                .filterDate(agg_start_date, agg_end_date)
-                .select(['et_reference'])
-                .sum()
+            eto_img = (
+                daily_et_ref_coll.filterDate(agg_start_date, agg_end_date)
+                .select(['et_reference']).sum()
             )
             if et_reference_resample and (et_reference_resample in ['bilinear', 'bicubic']):
-                et_reference_img = (
-                    et_reference_img
-                    .setDefaultProjection(daily_et_ref_coll.first().projection())
+                eto_img = (
+                    eto_img.setDefaultProjection(daily_et_ref_coll.first().projection())
                     .resample(et_reference_resample)
                 )
 
@@ -416,23 +418,31 @@ def from_scene_et_fraction(
         if 'et' in variables:
             image_list.append(et_img.float())
         if 'et_reference' in variables:
-            image_list.append(et_reference_img.float())
+            image_list.append(eto_img.float())
         if 'et_fraction' in variables:
             # Compute average et fraction over the aggregation period
-            image_list.append(et_img.divide(et_reference_img).rename(['et_fraction']).float())
+            image_list.append(et_img.divide(eto_img).rename(['et_fraction']).float())
         if 'ndvi' in variables:
-            # Compute average ndvi over the aggregation period
+            # Compute average NDVI over the aggregation period
             ndvi_img = (
                 daily_coll.filterDate(agg_start_date, agg_end_date)
                 .mean().select(['ndvi']).float()
             )
             image_list.append(ndvi_img)
-        if 'count' in variables:
-            count_img = (
+        if ('scene_count' in variables) or ('count' in variables):
+            scene_count_img = (
                 aggregate_coll.filterDate(agg_start_date, agg_end_date)
-                .select(['mask']).sum().rename('count').uint8()
+                .select(['mask']).reduce(ee.Reducer.sum()).rename('count')
+                .uint8()
             )
-            image_list.append(count_img)
+            image_list.append(scene_count_img)
+        if 'daily_count' in variables:
+            daily_count_img = (
+                daily_coll.filterDate(agg_start_date, agg_end_date)
+                .select(['et_fraction']).reduce(ee.Reducer.count()).rename('daily_count')
+                .uint8()
+            )
+            image_list.append(daily_count_img)
 
         # Return other SWB variables
         for var_name in ['ke', 'kr', 'ft', 'de_rew', 'de', 'de_prev', 'precip']:
