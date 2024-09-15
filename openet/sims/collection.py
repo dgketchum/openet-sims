@@ -461,8 +461,7 @@ class Collection():
             self.model_args['et_reference_resample'] = kwargs['et_reference_resample'].lower()
 
         # Check that all et_reference parameters were set
-        for et_reference_param in ['et_reference_source', 'et_reference_band',
-                                   'et_reference_factor']:
+        for et_reference_param in ['et_reference_source', 'et_reference_band']:
             if et_reference_param not in self.model_args.keys():
                 raise ValueError(f'{et_reference_param} was not set')
             elif not self.model_args[et_reference_param]:
@@ -488,16 +487,18 @@ class Collection():
                              f'{self.model_args["et_reference_source"]}')
 
         # Scale reference ET images (if necessary)
-        # CGM - Applying .resample() here does not work correctly
-        if (self.model_args['et_reference_factor'] and
-                (self.model_args['et_reference_factor'] != 1)):
+        # Support for applying an adjustment factor to the reference ET
+        #   may be removed at some point
+        if (('et_reference_factor' in self.model_args.keys()) and
+                self.model_args['et_reference_factor'] and
+                (self.model_args['et_reference_factor'] != 1) and
+                (self.model_args['et_reference_factor'] > 0)):
             def et_reference_adjust(input_img):
                 return (
                     input_img.multiply(self.model_args['et_reference_factor'])
                     .copyProperties(input_img)
                     .set({'system:time_start': input_img.get('system:time_start')})
                 )
-
             daily_et_ref_coll = daily_et_ref_coll.map(et_reference_adjust)
 
         # Initialize variable list to only variables that can be interpolated

@@ -424,12 +424,6 @@ def test_Collection_interpolate_et_reference_band_not_set():
         utils.getinfo(default_coll_obj(et_reference_band=None, model_args={}).interpolate())
 
 
-def test_Collection_interpolate_et_reference_factor_not_set():
-    """Test if Exception is raised if et_reference_factor is not set"""
-    with pytest.raises(ValueError):
-        utils.getinfo(default_coll_obj(et_reference_factor=None, model_args={}).interpolate())
-
-
 def test_Collection_interpolate_et_reference_factor_exception():
     """Test if Exception is raised if et_reference_factor is not a number or negative"""
     with pytest.raises(ValueError):
@@ -439,9 +433,9 @@ def test_Collection_interpolate_et_reference_factor_exception():
 def test_Collection_interpolate_et_reference_resample_exception():
     """Test if Exception is raised if et_reference_resample is not set"""
     with pytest.raises(ValueError):
-        utils.getinfo(default_coll_obj(
-            et_reference_resample='deadbeef', model_args={}
-        ).interpolate())
+        utils.getinfo(
+            default_coll_obj(et_reference_resample='deadbeef', model_args={}).interpolate()
+        )
 
 
 def test_Collection_interpolate_et_reference_params_kwargs():
