@@ -358,9 +358,10 @@ def test_Collection_interpolate_variables_custom_ndvi():
     assert {y['id'] for x in output['features'] for y in x['bands']} == {'ndvi'}
 
 
-def test_Collection_interpolate_variables_custom_daily_count():
-    output = utils.getinfo(default_coll_obj().interpolate(variables=['daily_count']))
-    assert {y['id'] for x in output['features'] for y in x['bands']} == {'daily_count'}
+# DEADBEEF
+# def test_Collection_interpolate_variables_custom_daily_count():
+#     output = utils.getinfo(default_coll_obj().interpolate(variables=['daily_count']))
+#     assert {y['id'] for x in output['features'] for y in x['bands']} == {'daily_count'}
 
 
 def test_Collection_interpolate_t_interval_daily():
@@ -384,16 +385,6 @@ def test_Collection_interpolate_t_interval_monthly():
     assert {y['id'] for x in output['features'] for y in x['bands']} == VARIABLES
 
 
-# CGM - Commenting out since this test is failing with a memory error
-# def test_Collection_interpolate_t_interval_annual():
-#     """Test if the annual time interval parameter works"""
-#     coll_obj = default_coll_obj(start_date='2017-01-01', end_date='2018-01-01')
-#     output = utils.getinfo(coll_obj.interpolate(t_interval='annual'))
-#     assert output['type'] == 'ImageCollection'
-#     assert parse_scene_id(output) == ['2017']
-#     assert {y['id'] for x in output['features'] for y in x['bands']} == VARIABLES
-
-
 def test_Collection_interpolate_t_interval_custom():
     """Test if the custom time interval parameter works"""
     output = utils.getinfo(default_coll_obj().interpolate(t_interval='custom'))
@@ -402,7 +393,7 @@ def test_Collection_interpolate_t_interval_custom():
     assert {y['id'] for x in output['features'] for y in x['bands']} == VARIABLES
 
 
-# TODO: Write test for annual interpolation with a date range that is too short
+# TODO: Write test for monthly interpolation with a date range that is too short
 
 
 # def test_Collection_interpolate_interp_days():
@@ -524,14 +515,6 @@ def test_Collection_interpolate_no_variables_exception():
 # def test_Collection_interpolate_values_monthly():
 #     output = utils.point_coll_value(
 #         default_coll_obj().interpolate(t_interval='monthly'),
-#         xy=TEST_POINT, scale=30)
-#     pprint.pprint(output)
-#     assert False
-
-
-# def test_Collection_interpolate_values_annual():
-#     output = utils.point_coll_value(
-#         default_coll_obj().interpolate(t_interval='annual'),
 #         xy=TEST_POINT, scale=30)
 #     pprint.pprint(output)
 #     assert False

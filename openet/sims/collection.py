@@ -355,8 +355,9 @@ class Collection():
             interp_method='linear',
             interp_days=32,
             use_joins=True,
+            mask_partial_aggregations=True,
             **kwargs,
-            ):
+    ):
         """
 
         Parameters
@@ -365,7 +366,7 @@ class Collection():
             List of variables that will be returned in the Image Collection.
             If variables is not set here it must be specified in the class
             instantiation call.
-        t_interval : {'daily', 'monthly', 'annual', 'custom'}, optional
+        t_interval : {'daily', 'monthly', 'custom'}, optional
             Time interval over which to interpolate and aggregate values
             The default 'custom' interval will aggregate all days within the
             start/end dates and return an image collection with a single image.
@@ -378,6 +379,9 @@ class Collection():
             If True, use joins to link the target and source collections.
             If False, the source collection will be filtered for each target image.
             This parameter is passed through to interpolate.daily().
+        mask_partial_aggregations : bool, optional
+            If True, pixels with an aggregation count less than the number of
+            days in the aggregation time period will be masked.  The default is True.
         kwargs : dict, optional
 
         Returns
@@ -398,7 +402,7 @@ class Collection():
 
         """
         # Check that the input parameters are valid
-        if t_interval.lower() not in ['daily', 'monthly', 'annual', 'custom']:
+        if t_interval.lower() not in ['daily', 'monthly', 'custom']:
             raise ValueError(f'unsupported t_interval: {t_interval}')
         elif interp_method.lower() not in ['linear']:
             raise ValueError(f'unsupported interp_method: {interp_method}')
@@ -421,18 +425,18 @@ class Collection():
         # Increase the date range to fully include the time interval
         start_dt = datetime.datetime.strptime(self.start_date, '%Y-%m-%d')
         end_dt = datetime.datetime.strptime(self.end_date, '%Y-%m-%d')
-        if t_interval.lower() == 'annual':
-            start_dt = datetime.datetime(start_dt.year, 1, 1)
-            # Covert end date to inclusive, flatten to beginning of year,
-            # then add a year which will make it exclusive
-            end_dt -= relativedelta(days=+1)
-            end_dt = datetime.datetime(end_dt.year, 1, 1)
-            end_dt += relativedelta(years=+1)
-        elif t_interval.lower() == 'monthly':
+        if t_interval.lower() == 'monthly':
             start_dt = datetime.datetime(start_dt.year, start_dt.month, 1)
             end_dt -= relativedelta(days=+1)
             end_dt = datetime.datetime(end_dt.year, end_dt.month, 1)
             end_dt += relativedelta(months=+1)
+        # elif t_interval.lower() == 'annual':
+        #     start_dt = datetime.datetime(start_dt.year, 1, 1)
+        #     # Covert end date to inclusive, flatten to beginning of year,
+        #     # then add a year which will make it exclusive
+        #     end_dt -= relativedelta(days=+1)
+        #     end_dt = datetime.datetime(end_dt.year, 1, 1)
+        #     end_dt += relativedelta(years=+1)
         start_date = start_dt.strftime('%Y-%m-%d')
         end_date = end_dt.strftime('%Y-%m-%d')
 
@@ -511,11 +515,6 @@ class Collection():
         # With the current interpolate.daily() function,
         #   something has to be interpolated in order to return et_reference
         if ('et_reference' in variables) and ('et_fraction' not in interp_vars):
-            interp_vars = interp_vars + ['et_fraction']
-
-        # To compute the daily count, the ETf must be interpolated
-        # We may want to add support for computing daily_count when interpolating NDVI
-        if ('daily_count' in variables) and ('et_fraction' not in interp_vars):
             interp_vars = interp_vars + ['et_fraction']
 
         # The time band is always needed for interpolation
@@ -599,6 +598,10 @@ class Collection():
         }
         interp_properties.update(self.model_args)
 
+        # CGM - This function is being declared here to avoid passing in all the common parameters
+        #   such as: daily_coll, daily_et_ref_coll, interp_properties, variables, etc.
+        # Long term it should probably be declared outside of this function
+        #   or read from openet-core
         def aggregate_image(agg_start_date, agg_end_date, date_format):
             """Aggregate the daily images within the target date range
 
@@ -615,19 +618,12 @@ class Collection():
             -------
             ee.Image
 
-            Notes
-            -----
-            Since this function takes multiple inputs it is being called
-            for each time interval by separate mappable functions
-
             """
-            # et_img = None
-            # et_reference_img = None
+            et_img = None
+            eto_img = None
+
             if ('et' in variables) or ('et_fraction' in variables):
-                et_img = (
-                    daily_coll.filterDate(agg_start_date, agg_end_date)
-                    .select(['et']).sum()
-                )
+                et_img = daily_coll.filterDate(agg_start_date, agg_end_date).select(['et']).sum()
 
             if ('et_reference' in variables) or ('et_fraction' in variables):
                 eto_img = (
@@ -641,47 +637,70 @@ class Collection():
                         .resample(self.model_args['et_reference_resample'])
                     )
 
+            # Count the number of interpolated/aggregated values
+            # Mask pixels that do not have a full aggregation count for the start/end
+            if ('et' in variables) or ('et_fraction' in variables):
+                aggregation_band = 'et'
+            elif 'ndvi' in interp_vars:
+                aggregation_band = 'ndvi'
+            else:
+                raise ValueError('no supported aggregation band')
+            aggregation_count_img = (
+                daily_coll.filterDate(agg_start_date, agg_end_date)
+                .select([aggregation_band]).reduce(ee.Reducer.count())
+            )
+
             image_list = []
             if 'et' in variables:
                 image_list.append(et_img.float())
             if 'et_reference' in variables:
                 image_list.append(eto_img.float())
             if 'et_fraction' in variables:
-                # Compute average et fraction over the aggregation period
+                # Average et fraction over the aggregation period
                 image_list.append(et_img.divide(eto_img).rename(['et_fraction']).float())
             if 'ndvi' in variables:
-                # Compute average NDVI over the aggregation period
+                # Average NDVI over the aggregation period
                 ndvi_img = (
                     daily_coll.filterDate(agg_start_date, agg_end_date)
                     .select(['ndvi']).mean().float()
+
                 )
                 image_list.append(ndvi_img)
             if ('scene_count' in variables) or ('count' in variables):
                 scene_count_img = (
                     aggregate_coll.filterDate(agg_start_date, agg_end_date)
-                    .select(['mask']).reduce(ee.Reducer.sum()).rename('count')
-                    .uint8()
+                    .select(['mask']).reduce(ee.Reducer.sum()).rename('count').uint8()
                 )
                 image_list.append(scene_count_img)
             if 'daily_count' in variables:
-                daily_count_img = (
-                    daily_coll.filterDate(agg_start_date, agg_end_date)
-                    .select(['et_fraction']).reduce(ee.Reducer.count()).rename('daily_count')
-                    .uint8()
-                )
-                image_list.append(daily_count_img)
+                image_list.append(aggregation_count_img.rename('daily_count').uint8())
+
+            output_img = ee.Image(image_list)
+
+            if mask_partial_aggregations:
+                aggregation_days = ee.Date(agg_end_date).difference(ee.Date(agg_start_date), 'day')
+                aggregation_count_mask = aggregation_count_img.gte(aggregation_days.subtract(1))
+                # aggregation_count_mask = agg_count_img.gte(aggregation_days)
+                output_img = output_img.updateMask(aggregation_count_mask)
 
             return (
-                ee.Image(image_list)
-                .set(interp_properties)
+                output_img
                 .set({
                     'system:index': ee.Date(agg_start_date).format(date_format),
                     'system:time_start': ee.Date(agg_start_date).millis(),
                 })
+                .set(interp_properties)
             )
 
         # Combine input, interpolated, and derived values
-        if t_interval.lower() == 'daily':
+        if t_interval.lower() == 'custom':
+            # Return an ImageCollection to be consistent with the other t_interval options
+            return ee.ImageCollection(aggregate_image(
+                agg_start_date=start_date,
+                agg_end_date=end_date,
+                date_format='YYYYMMdd',
+            ))
+        elif t_interval.lower() == 'daily':
             def aggregate_daily(daily_img):
                 # CGM - Double check that this time_start is a 0 UTC time.
                 # It should be since it is coming from the interpolate source
@@ -693,9 +712,7 @@ class Collection():
                     agg_end_date=ee.Date(agg_start_date).advance(1, 'day'),
                     date_format='YYYYMMdd',
                 )
-
             return ee.ImageCollection(daily_coll.map(aggregate_daily))
-
         elif t_interval.lower() == 'monthly':
             def month_gen(iter_start_dt, iter_end_dt):
                 iter_dt = iter_start_dt
@@ -703,41 +720,17 @@ class Collection():
                 while iter_dt < iter_end_dt:
                     yield iter_dt.strftime('%Y-%m-%d')
                     iter_dt += relativedelta(months=+1)
-            month_list = ee.List(list(month_gen(start_dt, end_dt)))
-
             def aggregate_monthly(agg_start_date):
                 return aggregate_image(
                     agg_start_date=agg_start_date,
                     agg_end_date=ee.Date(agg_start_date).advance(1, 'month'),
                     date_format='YYYYMM',
                 )
-
-            return ee.ImageCollection(month_list.map(aggregate_monthly))
-
-        elif t_interval.lower() == 'annual':
-            def year_gen(iter_start_dt, iter_end_dt):
-                iter_dt = iter_start_dt
-                while iter_dt < iter_end_dt:
-                    yield iter_dt.strftime('%Y-%m-%d')
-                    iter_dt += relativedelta(years=+1)
-            year_list = ee.List(list(year_gen(start_dt, end_dt)))
-
-            def aggregate_annual(agg_start_date):
-                return aggregate_image(
-                    agg_start_date=agg_start_date,
-                    agg_end_date=ee.Date(agg_start_date).advance(1, 'year'),
-                    date_format='YYYY',
-                )
-
-            return ee.ImageCollection(year_list.map(aggregate_annual))
-
-        elif t_interval.lower() == 'custom':
-            # Returning an ImageCollection to be consistent
-            return ee.ImageCollection(aggregate_image(
-                agg_start_date=start_date,
-                agg_end_date=end_date,
-                date_format='YYYYMMdd',
-            ))
+            return ee.ImageCollection(
+                ee.List(list(month_gen(start_dt, end_dt))).map(aggregate_monthly)
+            )
+        else:
+            raise ValueError(f'unsupported t_interval: {t_interval}')
 
     def get_image_ids(self):
         """Return image IDs of the input images

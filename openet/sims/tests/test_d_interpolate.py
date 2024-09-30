@@ -84,7 +84,6 @@ def test_from_scene_et_fraction_t_interval_daily_values(tol=0.0001):
         interp_args={'interp_method': 'linear', 'interp_days': 32},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='daily',
     )
@@ -115,7 +114,6 @@ def test_from_scene_et_fraction_t_interval_monthly_values(tol=0.0001):
         interp_args={'interp_method': 'linear', 'interp_days': 32},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='monthly',
     )
@@ -137,7 +135,6 @@ def test_from_scene_et_fraction_t_interval_custom_values(tol=0.0001):
         interp_args={'interp_method': 'linear', 'interp_days': 32},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='custom',
     )
@@ -159,7 +156,6 @@ def test_from_scene_et_fraction_t_interval_custom_daily_count(tol=0.0001):
         interp_args={'interp_method': 'linear', 'interp_days': 32},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='custom',
     )
@@ -200,7 +196,6 @@ def test_from_scene_et_fraction_t_interval_monthly_et_reference_resample(tol=0.0
         interp_args={'interp_method': 'linear', 'interp_days': 32},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'bilinear'},
         t_interval='monthly',
     )
@@ -227,7 +222,6 @@ def test_from_scene_et_fraction_t_interval_monthly_interp_args_et_reference(tol=
         interp_args={'interp_method': 'linear', 'interp_days': 32,
                      'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                      'et_reference_band': 'eto',
-                     'et_reference_factor': 1.0,
                      'et_reference_resample': 'nearest'},
         model_args={},
         t_interval='monthly',
@@ -336,7 +330,6 @@ def test_soil_evaporation_landsat(tol=0.001):
         interp_args={'interp_method': 'linear', 'interp_days': 32, 'use_joins': True},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='daily',
     )
@@ -351,7 +344,6 @@ def test_soil_evaporation_landsat(tol=0.001):
                      'estimate_soil_evaporation': True, 'use_joins': True},
         model_args={'et_reference_source': 'IDAHO_EPSCOR/GRIDMET',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='daily',
     )
@@ -486,7 +478,6 @@ def test_soil_evap_fails_without_ndvi(synth_test_imgs):
                          'estimate_soil_evaporation': True},
             model_args={'et_reference_source': 'provided',
                         'et_reference_band': 'eto',
-                        'et_reference_factor': 1.0,
                         'et_reference_resample': 'nearest'},
             t_interval='daily',
         )
@@ -507,7 +498,6 @@ def test_soil_evaporation_synthetic(synth_test_imgs, synth_precip_imgs, tol=0.00
                      'estimate_soil_evaporation': False},
         model_args={'et_reference_source': 'provided',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='daily',
     )
@@ -523,7 +513,6 @@ def test_soil_evaporation_synthetic(synth_test_imgs, synth_precip_imgs, tol=0.00
                      'precip_band': 'pr'},
         model_args={'et_reference_source': 'provided',
                     'et_reference_band': 'eto',
-                    'et_reference_factor': 1.0,
                     'et_reference_resample': 'nearest'},
         t_interval='daily',
     )
