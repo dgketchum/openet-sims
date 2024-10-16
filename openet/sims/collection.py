@@ -105,6 +105,7 @@ class Collection():
             self.model_args = model_args
         else:
             self.model_args = {}
+
         if filter_args is not None:
             self.filter_args = filter_args
         else:

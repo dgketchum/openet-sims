@@ -304,7 +304,7 @@ def from_scene_et_fraction(
 
         # Set the default scale factor to 1 if the image does not have the property
         scale_factor = (
-            ee.Dictionary({'scale_factor_et_fraction': img.get('scale_factor')})
+            ee.Dictionary({'scale_factor': img.get('scale_factor_et_fraction')})
             .combine({'scale_factor': 1.0}, overwrite=False)
         )
 
