@@ -141,6 +141,17 @@ def test_Image_init_date_properties():
         [0.2, 0.8, 0.6],
         [0.1, 17.0 / 30, 0.7],
         [0.1, 0.9, 0.8],
+        # First check that negative values are not masked
+        [-0.01, 0.1, 1.0],
+        [0.1, -0.01, -1.0],
+        # Check that low reflectance values are set to 0
+        [-0.1, -0.1, 0.0],
+        [0.0, 0.0, 0.0],
+        [0.009, 0.009, 0.0],
+        [0.009, -0.01, 0.0],
+        [-0.01, 0.009, 0.0],
+        # Don't adjust NDVI if only one reflectance value is low
+        [0.005, 0.1, 0.9047619104385376],
     ]
 )
 def test_Image_static_ndvi_calculation(red, nir, expected, tol=0.000001):

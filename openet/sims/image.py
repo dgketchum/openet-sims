@@ -491,4 +491,27 @@ class Image():
         ee.Image
 
         """
-        return landsat_image.normalizedDifference(['nir', 'red']).rename(['ndvi'])
+
+        # Force the input values to be at greater than or equal to zero
+        #   since C02 surface reflectance values can be negative
+        #   but the normalizedDifference function will return nodata
+        ndvi = (
+            landsat_image.select(['nir', 'red'])
+            .max(0)
+            .normalizedDifference(['nir', 'red'])
+            .rename(['ndvi'])
+        )
+
+        # Assume that low reflectance values are unreliable for computing NDVI
+        # If both reflectance values are below the minimum, set the output to 0
+        # If either of the reflectance values was negative, set the output to 0
+        # The 0.01 threshold was chosen arbitrarily and may need to be adjusted
+        nir = landsat_image.select(['nir'])
+        red = landsat_image.select(['red'])
+        ndvi = ndvi.where(nir.lt(0.01).And(red.lt(0.01)), 0)
+        #ndvi = ndvi.where(nir.lt(0).Or(red.lt(0)), 0)
+        #ndvi = ndvi.where(nir.lte(0).And(red.lte(0.01)), 0)
+        #ndvi = ndvi.where(nir.lte(0.01).And(red.lte(0)), 0)
+        return ndvi
+
+        # return landsat_image.normalizedDifference(['nir', 'red']).rename(['ndvi'])
