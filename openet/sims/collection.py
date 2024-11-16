@@ -664,7 +664,6 @@ class Collection():
                 ndvi_img = (
                     daily_coll.filterDate(agg_start_date, agg_end_date)
                     .select(['ndvi']).mean().float()
-
                 )
                 image_list.append(ndvi_img)
             if ('scene_count' in variables) or ('count' in variables):
