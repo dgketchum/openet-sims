@@ -4,7 +4,15 @@ References
     Allen, R. and L. Pereira (2009).  Estimating crop coefficients from
     fraction of ground cover and height. Irrigation Science 28:17-34.
     DOI 10.1007/s00271-009-0182-z
+
+    d’Andrimont, R., Verhegghen, A., Lemoine, G., Kempeneers, P., Meroni, M.,
+    & Van Der Velde, M. (2021). From parcel to continental scale–A first European
+    crop type map based on Sentinel-1 and LUCAS Copernicus in-situ observations.
+    Remote sensing of environment, 266, 112708.
+
 """
+
+NULL_PARAMS = {'crop_class': 0, 'name': 'Non-modeled'}
 
 # Scaling factor to use in EE remap function since it only work with integers
 int_scalar = 100
@@ -215,4 +223,49 @@ cdl = {
 
     # Grass pasture
     176: {'crop_class': 7, 'name': 'Grass/pasture'},
+}
+
+eucrop = {
+    # Artificial / Non-agricultural
+    100: {**NULL_PARAMS, 'name': 'Artificial'}, # No ET model applicable
+
+    # Cereals
+    211: {**cdl[24], 'name': 'Common wheat'}, # CDL 24: Winter Wheat
+    212: {**cdl[22], 'name': 'Durum wheat'}, # CDL 22: Durum Wheat
+    213: {**cdl[21], 'name': 'Barley'}, # CDL 21: Barley
+    214: {**cdl[27], 'name': 'Rye'}, # CDL 27: Rye
+    215: {**cdl[28], 'name': 'Oats'}, # CDL 28: Oats
+    216: {**cdl[1], 'name': 'Maize'}, # CDL 1: Corn
+    217: {**cdl[3], 'name': 'Rice'}, # CDL 3: Rice (Note crop_class 5)
+    218: {**cdl[205], 'name': 'Triticale'}, # CDL 205: Triticale
+    219: {**cdl[25], 'name': 'Other cereals'}, # CDL 25: Other Small Grains as proxy
+
+    # Root Crops
+    221: {**cdl[43], 'name': 'Potatoes'}, # CDL 43: Potatoes
+    222: {**cdl[41], 'name': 'Sugar beet'}, # CDL 41: Sugarbeets
+    223: {**cdl[43], 'name': 'Other root crops'}, # CDL 43: Potatoes as proxy
+
+    # Industrial Crops
+    230: {**cdl[31], 'name': 'Other non-permanent industrial crops'}, # CDL 31: Canola as proxy
+    231: {**cdl[6], 'name': 'Sunflower'}, # CDL 6: Sunflower
+    232: {**cdl[31], 'name': 'Rapeseed and turnip rapeseed'}, # CDL 31: Canola
+    233: {**cdl[5], 'name': 'Soya'}, # CDL 5: Soybeans
+
+    # Pulses
+    240: {**cdl[42], 'name': 'Dry pulses'}, # CDL 42: Dry Beans as proxy for peas, lentils etc.
+
+    # Fodder Crops
+    250: {**cdl[36], 'name': 'Fodder crops'}, # CDL 36: Alfalfa as proxy for hay, clover, vetch etc.
+
+    # Arable Land Status
+    290: {**cdl[61], 'name': 'Bare arable land'}, # CDL 61: Fallow/Idle Cropland
+
+    # Permanent / Natural Vegetation
+    # 300: {**cdl[71], 'name': 'Woodland and Shrubland'}, # CDL 71: Other Tree Crops as proxy (Significant Assumption!)
+    500: {**cdl[176], 'name': 'Grasslands'}, # CDL 176: Grass/pasture
+
+    # # Other Land Covers
+    # 600: {**cdl[61], 'name': 'Bare land/lichens moss (using Fallow params)'}, # CDL 61: Fallow/Idle Cropland as proxy for bare ground
+    # 700: {**NULL_PARAMS, 'name': 'Water'}, # No ET model applicable
+    # 800: {**NULL_PARAMS, 'name': 'Wetlands'}, # Complex; not directly modeled, treat as non-modeled for now
 }
