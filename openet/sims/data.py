@@ -12,8 +12,6 @@ References
 
 """
 
-NULL_PARAMS = {'crop_class': 0, 'name': 'Non-modeled'}
-
 # Scaling factor to use in EE remap function since it only work with integers
 int_scalar = 100
 
@@ -226,46 +224,51 @@ cdl = {
 }
 
 eucrop = {
-    # Artificial / Non-agricultural
-    100: {**NULL_PARAMS, 'name': 'Artificial'}, # No ET model applicable
+
+    # non-agricultural EUCROPMAP classes:
+    # 100: Artificial
+    # 700: Water
+    # 800: Wetlands
 
     # Cereals
-    211: {**cdl[24], 'name': 'Common wheat'}, # CDL 24: Winter Wheat
-    212: {**cdl[22], 'name': 'Durum wheat'}, # CDL 22: Durum Wheat
-    213: {**cdl[21], 'name': 'Barley'}, # CDL 21: Barley
-    214: {**cdl[27], 'name': 'Rye'}, # CDL 27: Rye
-    215: {**cdl[28], 'name': 'Oats'}, # CDL 28: Oats
-    216: {**cdl[1], 'name': 'Maize'}, # CDL 1: Corn
-    217: {**cdl[3], 'name': 'Rice'}, # CDL 3: Rice (Note crop_class 5)
-    218: {**cdl[205], 'name': 'Triticale'}, # CDL 205: Triticale
-    219: {**cdl[25], 'name': 'Other cereals'}, # CDL 25: Other Small Grains as proxy
+    211: {'crop_class': 1, 'h_max': 1.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Common wheat'}, # Source: CDL 24: Winter Wheat
+    212: {'crop_class': 1, 'h_max': 1.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Durum wheat'}, # Source: CDL 22: Durum Wheat
+    213: {'crop_class': 1, 'h_max': 1.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Barley'}, # Source: CDL 21: Barley
+    214: {'crop_class': 1, 'h_max': 0.3, 'm_l': 2, 'fr_mid': 1, 'name': 'Rye'}, # Source: CDL 27: Rye
+    215: {'crop_class': 1, 'h_max': 1.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Oats'}, # Source: CDL 28: Oats
+    216: {'crop_class': 1, 'h_max': 2.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Maize'}, # Source: CDL 1: Corn
+    217: {'crop_class': 5, 'h_max': 1.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Rice'}, # Source: CDL 3: Rice
+    218: {'crop_class': 1, 'h_max': 0.65, 'm_l': 2, 'fr_mid': 1, 'name': 'Triticale'}, # Source: CDL 205: Triticale
+    219: {'crop_class': 1, 'h_max': 1.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Other cereals'}, # Source: CDL 25: Other Small Grains
 
     # Root Crops
-    221: {**cdl[43], 'name': 'Potatoes'}, # CDL 43: Potatoes
-    222: {**cdl[41], 'name': 'Sugar beet'}, # CDL 41: Sugarbeets
-    223: {**cdl[43], 'name': 'Other root crops'}, # CDL 43: Potatoes as proxy
+    221: {'crop_class': 1, 'h_max': 0.6, 'm_l': 2, 'fr_mid': 1, 'name': 'Potatoes'}, # Source: CDL 43: Potatoes
+    222: {'crop_class': 1, 'h_max': 0.5, 'm_l': 2, 'fr_mid': 1, 'name': 'Sugar beet'}, # Source: CDL 41: Sugarbeets
+    223: {'crop_class': 1, 'h_max': 0.6, 'm_l': 2, 'fr_mid': 1, 'name': 'Other root crops'}, # Source: CDL 43: Potatoes
 
     # Industrial Crops
-    230: {**cdl[31], 'name': 'Other non-permanent industrial crops'}, # CDL 31: Canola as proxy
-    231: {**cdl[6], 'name': 'Sunflower'}, # CDL 6: Sunflower
-    232: {**cdl[31], 'name': 'Rapeseed and turnip rapeseed'}, # CDL 31: Canola
-    233: {**cdl[5], 'name': 'Soya'}, # CDL 5: Soybeans
+    230: {'crop_class': 1, 'h_max': 0.6, 'm_l': 2, 'fr_mid': 1, 'name': 'Other non-permanent industrial crops'}, # Source: CDL 31: Canola
+    231: {'crop_class': 1, 'h_max': 2.0, 'm_l': 2, 'fr_mid': 1, 'name': 'Sunflower'}, # Source: CDL 6: Sunflower
+    232: {'crop_class': 1, 'h_max': 0.6, 'm_l': 2, 'fr_mid': 1, 'name': 'Rapeseed and turnip rapeseed'}, # Source: CDL 31: Canola
+    233: {'crop_class': 1, 'h_max': 0.5, 'm_l': 2, 'fr_mid': 1, 'name': 'Soya'}, # Source: CDL 5: Soybeans
 
     # Pulses
-    240: {**cdl[42], 'name': 'Dry pulses'}, # CDL 42: Dry Beans as proxy for peas, lentils etc.
+    240: {'crop_class': 1, 'h_max': 0.4, 'm_l': 2, 'fr_mid': 1, 'name': 'Dry pulses'}, # Source: CDL 42: Dry Beans
 
     # Fodder Crops
-    250: {**cdl[36], 'name': 'Fodder crops'}, # CDL 36: Alfalfa as proxy for hay, clover, vetch etc.
+    250: {'crop_class': 1, 'h_max': 0.7, 'm_l': 2, 'fr_mid': 1, 'name': 'Fodder crops (cereals and leguminous)'}, # Source: CDL 36: Alfalfa
 
     # Arable Land Status
-    290: {**cdl[61], 'name': 'Bare arable land'}, # CDL 61: Fallow/Idle Cropland
+    290: {'crop_class': 6, 'name': 'Bare arable land'}, # Source: CDL 61: Fallow/Idle Cropland
 
     # Permanent / Natural Vegetation
-    # 300: {**cdl[71], 'name': 'Woodland and Shrubland'}, # CDL 71: Other Tree Crops as proxy (Significant Assumption!)
-    500: {**cdl[176], 'name': 'Grasslands'}, # CDL 176: Grass/pasture
+    300: {
+        'crop_class': 3, 'h_max': 4, 'm_l': 1.5, 'fr_mid': 0.89, 'fr_end': 0.63,
+        'ls_start': 270, 'ls_stop': 300, 'name': 'Woodland and Shrubland (incl. permanent crops)' # Source: CDL 71: Other Tree Crops
+    },
+    500: {'crop_class': 7, 'name': 'Grasslands'}, # Source: CDL 176: Grass/pasture
 
-    # # Other Land Covers
-    # 600: {**cdl[61], 'name': 'Bare land/lichens moss (using Fallow params)'}, # CDL 61: Fallow/Idle Cropland as proxy for bare ground
-    # 700: {**NULL_PARAMS, 'name': 'Water'}, # No ET model applicable
-    # 800: {**NULL_PARAMS, 'name': 'Wetlands'}, # Complex; not directly modeled, treat as non-modeled for now
+    # Other Land Covers
+    600: {'crop_class': 6, 'name': 'Bare land/lichens moss'}, # Source: CDL 61: Fallow/Idle Cropland
 }
+

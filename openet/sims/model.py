@@ -289,6 +289,14 @@ class Model():
             )
             crop_type_img = crop_type_coll.mosaic()
             properties = properties.set('id', crop_type_coll.get('system:id'))
+        elif (type(self.crop_type_source) is str and
+              self.crop_type_source.upper().startswith('JRC/D5/EUCROPMAP')):
+            # EU crop type mosaic; select first band to ensure single-band image
+            crop_coll = ee.ImageCollection(self.crop_type_source)
+            crop_type_img = crop_coll.mosaic()
+            band0 = ee.String(crop_type_img.bandNames().get(0))
+            crop_type_img = crop_type_img.select([band0])
+            properties = properties.set('id', crop_coll.get('system:id'))
         # TODO: Support ee.Image and ee.ImageCollection sources
         # elif isinstance(self.crop_type_source, computedobject.ComputedObject):
         else:
@@ -319,6 +327,8 @@ class Model():
         """
         if self.crop_type_remap.upper() == 'CDL':
             return data.cdl
+        elif self.crop_type_remap.upper() == 'EUCROP':
+            return data.eucrop
         else:
             raise ValueError(f'unsupported crop_type_remap: "{self.crop_type_remap}"')
 
