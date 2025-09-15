@@ -157,10 +157,10 @@ def export_sims_zonal_stats(
             data = bands.reduceRegions(collection=fc, reducer=ee.Reducer.mean(), scale=30)
 
             desc = f'sims_etf_{fid}_{mask_type}_{year}'
-            fn_prefix = os.path.join('sims_tables', str(fid), mask_type, desc)
+            fn_prefix = os.path.join('sims_tables', mask_type, str(fid), desc)
 
             if check_dir:
-                f = os.path.join(check_dir, fid, f'{desc}.csv')
+                f = os.path.join(check_dir, mask_type, str(fid), f'{desc}.csv')
                 if os.path.exists(f):
                     print(f'{f} exists, skipping')
                     continue
