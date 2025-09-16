@@ -110,7 +110,6 @@ def export_sims_zonal_stats(
                     print(f'{f} exists, skipping')
                     continue
 
-
             if mask_type in ['irr', 'inv_irr']:
                 if state_col in row and row[state_col] in STATES:
                     irr = (
@@ -217,8 +216,8 @@ if __name__ == '__main__':
         start_yr=1987,
         end_yr=2024,
         select=None,
-        mask_type='irr',
-        check_dir=None,
+        mask_type='inv_irr',
+        check_dir=chk_dir,
         state_col='state',
         buffer=None,
     )
