@@ -216,7 +216,7 @@ if __name__ == '__main__':
         start_yr=1987,
         end_yr=2024,
         select=None,
-        mask_type='inv_irr',
+        mask_type='irr',
         check_dir=chk_dir,
         state_col='state',
         buffer=None,
